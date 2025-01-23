@@ -3,6 +3,8 @@
 1. Include team members details( Full Name, PID, FIU email).
 
 Luisana Barajas 6185586 lbara016@fiu.edu
+Elisha Jeanbaptiste 6447222 ejean112@fiu.edu
+Stherline Clairissaint 6391671 sclai006@fiu.edu
 
 2. Include corresponding member details.
 
