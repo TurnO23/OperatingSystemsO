@@ -1,41 +1,3 @@
-/******************************************************************************
-File: random_number_statistics.c
-Purpose:
-=========This program generates random numbers using uniform and normal
-distributions,writes the generated sequences to text files, and calculates the
-sample mean and standard deviation for each sequence. It also generates
-histograms for the generated sequences.
-Features:
-=========
-1.**Uniform Integer Distribution**: Generates random integers within a specified
-range [m, M], where all integers have equal probability.
-2.**Uniform Real Distribution**: Generates random real numbers uniformly
-distributed in [m, M].
-3.**Normal Distribution (Real)**: Generates random real numbers from a normal
-distribution with specified mean and standard deviation.
-4.**Normal Distribution (Integer)**: Generates random integer numbers from a
-normal distribution with specified mean and standard deviation.
-5.**Truncated Normal Distribution (Real)**: Generates random real numbers from a
-normal distribution truncated to lie within [m, M].
-6.**Truncated Normal Distribution (Integer)**: Generates random integers from a
-normal distribution truncated to lie within [m, M].
-7.To compute the sample mean and standard deviation of the generated sequences.
-8.Generates histograms for all the 6 distributions in Scenario 3.
-Scenarios:
-==========
-1.Scenario 1: mu=5, sigma=1, m=1, M=8, N=20
-2.Scenario 2: mu=2^10, sigma=2^8, m=1, M=2000, N=200,000
-3.Scenario 3: mu=2^12, sigma=1.3*(2^10), m=1, M=8100, N=2,000,000
-Output:
-==========
-- Separate .txt files are created for each generator in the respective subfolders
-(Scenario1, Scenario2, Scenario3) under the DATA directory.
-- The program calculates the sample mean and standard deviation for all the six
-generators of the three given scenarios.
-- Histograms are generated for all the generators in Scenario 3 and written to
-the HISTOGRAM folder.
-*********************************************************************************/
-
 #include <stdio.h>// For standard I/O operations
 #include <math.h>// For mathematical functions
 #include <stdlib.h>// For memory allocation and exit() function
@@ -43,11 +5,12 @@ the HISTOGRAM folder.
 #include <string.h>// For string manipulation
 #include <sys/stat.h> // For mkdir()
 #include <errno.h>
-// For error handling
-// Macros for generating random numbers
+
+#define M_PI 3.14159265358979323846
+
 #define frand() (rand() / (double)RAND_MAX) // Uniform random number in [0, 1)
 #define nrand() (sqrt(-2 * log(frand())) * cos(2 * M_PI * frand())) // Normal
-random number
+// random number
 // Number of bins for histograms
 #define HISTOGRAM_BINS 50// Function prototypes
 void generate_random_numbers_to_file(const char* filename, int type, double m, double M, double mu, double sigma, int N);
@@ -76,9 +39,7 @@ double scenarios[3][5] = {
 // Paths for directories and files
 char* subfolders[3] = {"DATA/Scenario1", "DATA/Scenario2", "DATA/Scenario3"};
 char* histogram_folder = "HISTOGRAM";
-// Directory creation (e.g., DATA, HISTOGRAM, subfolders)
-// Ensure to use `create_directory` function and validate each directory
-creation.
+
 // Loop through each scenario to process random numbers
 for (int i = 0; i < 3; i++) {
 double mu = scenarios[i][0];
@@ -145,7 +106,6 @@ double M, double mu, double sigma, int N)
                 return;
         }
 
-        // Write the generated number to the file
         fprintf(file, "%.6f\n", random_number);
     }
 
@@ -160,15 +120,15 @@ void calculate_statistics_from_file(const char* filename, int N)
         return;
     }
 
-    double sum = 0.0;         
-    double sum_of_squares = 0.0; 
-    int count = 0;             
+    double sum = 0.0;          // To store the sum of numbers
+    double sum_of_squares = 0.0; // To store the sum of squares of numbers
+    int count = 0;             // To track how many numbers have been read
     double number;
 
     // Read numbers from the file
     while (count < N && fscanf(file, "%lf", &number) == 1) {
-        sum += number;                   
-        sum_of_squares += number * number; 
+        sum += number;                    // Add to the sum
+        sum_of_squares += number * number; // Add to the sum of squares
         count++;
     }
 
@@ -177,6 +137,7 @@ void calculate_statistics_from_file(const char* filename, int N)
         fprintf(stderr, "Warning: Expected %d numbers but only found %d in '%s'.\n", N, count, filename);
     }
 
+    // Calculate mean
     double mean = sum / count;
 
     // Calculate standard deviation
@@ -188,6 +149,7 @@ void calculate_statistics_from_file(const char* filename, int N)
     printf("Mean: %.6f\n", mean);
     printf("Standard Deviation: %.6f\n", std_dev);
 
+    // Close the file
     fclose(file);
 
 }
@@ -203,6 +165,7 @@ output_filename, int bins, double min, double max)
         return;
     }
 
+    // Open the output file for writing
     FILE* output_file = fopen(output_filename, "w");
     if (!output_file) {
         fprintf(stderr, "Error: Could not open output file '%s'.\n", output_filename);
@@ -210,6 +173,7 @@ output_filename, int bins, double min, double max)
         return;
     }
 
+    // Initialize histogram bins
     int* histogram = (int*)calloc(bins, sizeof(int));
     if (!histogram) {
         fprintf(stderr, "Error: Memory allocation failed for histogram bins.\n");
@@ -238,6 +202,7 @@ output_filename, int bins, double min, double max)
         fprintf(output_file, "%.2f - %.2f: %d\n", bin_start, bin_end, histogram[i]);
     }
 
+    // Clean up
     free(histogram);
     fclose(input_file);
     fclose(output_file);
@@ -257,21 +222,21 @@ int generate_uniform_integer(double m, double M)
 
 double generate_uniform_real(double m, double M)
 {
-        return m + (frand() * (M - m));  // Scale the random value to the range [m, M]
+        return m + (frand() * (M - m)); 
 }
 
 
 
 int generate_normal_integer(double mu, double sigma)
 {
-    double normal_value = mu + (sigma * nrand());  // Generate normal real value
-    return (int)round(normal_value);  // Convert to integer
+    double normal_value = mu + (sigma * nrand());  
+    return (int)round(normal_value);  
 }
 
 
 double generate_normal_real(double mu, double sigma)
 {
-        return mu + (sigma * nrand());  // Generate normal real value
+        return mu + (sigma * nrand()); 
 }
 
 
@@ -281,8 +246,8 @@ sigma)
 {
      int value;
     do {
-        value = generate_normal_integer(mu, sigma);  // Generate normal integer
-    } while (value < m || value > M);  // Repeat if outside range
+        value = generate_normal_integer(mu, sigma);  
+    } while (value < m || value > M);  
     return value;
 }
 
@@ -292,8 +257,8 @@ sigma)
 {
     double value;
     do {
-        value = generate_normal_real(mu, sigma);  // Generate normal real value
-    } while (value < m || value > M);  // Repeat if outside range
+        value = generate_normal_real(mu, sigma);  
+    } while (value < m || value > M);  
     return value;
 }
 
@@ -303,9 +268,9 @@ double calculate_mean(double* data, int n)
 {
     double sum = 0.0;
     for (int i = 0; i < n; i++) {
-        sum += data[i];  // Sum up all the values
+        sum += data[i];  
     }
-    return sum / n;  // Calculate the mean
+    return sum / n;  
 }
 
 
@@ -314,7 +279,6 @@ double calculate_std_dev(double* data, int n, double mean)
 {
     double sum_squared_diff = 0.0;
     for (int i = 0; i < n; i++) {
-        sum_squared_diff += pow(data[i] - mean, 2);  // Calculate squared differences from the mean
+        sum_squared_diff += pow(data[i] - mean, 2);  
     }
-    return sqrt(sum_squared_diff / (n - 1));  // Calculate sample standard deviation
-}
+    return sqrt(sum_squared_diff / (n - 1));  
