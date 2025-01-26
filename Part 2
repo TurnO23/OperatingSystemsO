@@ -1,19 +1,6 @@
-double calculate_mean(double* data, int n) {
-    double sum = 0.0;
-    for (int i = 0; i < n; i++) {
-        sum += data[i];
-    }
-    return sum / n;
-}
-
-double calculate_std_dev(double* data, int n, double mean) {
-    double sum_squared_diff = 0.0;
-    for (int i = 0; i < n; i++) {
-        double diff = data[i] - mean;
-        sum_squared_diff += diff * diff;
-    }
-    return sqrt(sum_squared_diff / (n - 1));
-}
+#include <stdio.h>
+#include <stdlib.h>
+#include <math.h>
 
 void calculate_statistics_from_file(const char* filename, int N) {
     FILE* file = fopen(filename, "r");
@@ -38,8 +25,18 @@ void calculate_statistics_from_file(const char* filename, int N) {
         fprintf(stderr, "Warning: Expected %d numbers but only found %d in '%s'.\n", N, count, filename);
     }
 
-    double mean = calculate_mean(data, count);
-    double std_dev = calculate_std_dev(data, count, mean);
+    double sum = 0.0;
+    for (int i = 0; i < count; i++) {
+        sum += data[i];
+    }
+    double mean = sum / count;
+
+    double sum_squared_diff = 0.0;
+    for (int i = 0; i < count; i++) {
+        double diff = data[i] - mean;
+        sum_squared_diff += diff * diff;
+    }
+    double std_dev = sqrt(sum_squared_diff / (count - 1));
 
     printf("File: %s\n", filename);
     printf("Sample Mean: %.6f\n", mean);
@@ -48,32 +45,33 @@ void calculate_statistics_from_file(const char* filename, int N) {
     free(data);
     fclose(file);
 }
-// Add this function to the main part the program
-void process_statistics_for_scenario(int scenario_num, double m, double M, int N) {
-    char filepath[256];
-    const char* types[] = {
-        "uniform_integers",
-        "uniform_real",
-        "normal_integer",
-        "normal_real",
-        "truncated_normal_integer",
-        "truncated_normal_real"
+
+int main() {
+    srand(time(NULL));
+
+    double scenarios[3][5] = {
+        {5, 1, 1, 8, 20},
+        {pow(2, 10), pow(2, 8), 1, 2000, 200000},
+        {pow(2, 12), 1.3 * pow(2, 10), 1, 8100, 2000000}
     };
 
-    for (int i = 0; i < 6; i++) {
-        sprintf(filepath, "DATA/Scenario%d/%s.txt", scenario_num, types[i]);
-        calculate_statistics_from_file(filepath, N);
+    for (int i = 0; i < 3; i++) {
+        printf("\nProcessing statistics for Scenario %d:\n", i + 1);
+        char filepath[256];
+        const char* types[] = {
+            "uniform_integers",
+            "uniform_real",
+            "normal_integer",
+            "normal_real",
+            "truncated_normal_integer",
+            "truncated_normal_real"
+        };
 
+        for (int j = 0; j < 6; j++) {
+            sprintf(filepath, "DATA/Scenario%d/%s.txt", i + 1, types[j]);
+            calculate_statistics_from_file(filepath, (int)scenarios[i][4]);
+        }
+    }
 
-
-// Main Program Statistics Section
-for (int i = 0; i < 3; i++) 
-{
-      printf("\nProcessing statistics for Scenario %d:\n", i + 1);
-      process_statistics_for_scenario(
-          i + 1,
-          scenarios[i][2],
-          scenarios[i][3],
-          (int)scenarios[i][4]
-      );
+    return 0;
 }
