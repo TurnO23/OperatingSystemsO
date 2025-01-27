@@ -2,13 +2,17 @@
 
 1. Include team members details( Full Name, PID, FIU email).
 
-Luisana Barajas 6185586 lbara016@fiu.edu
-Elisha Jeanbaptiste 6447222 ejean112@fiu.edu
-Stherline Clairissaint 6391671 sclai006@fiu.edu
-Obed Turnier 6125247 Oturnier2018@fiu.edu
+RVC Luisana Barajas 6185586 lbara016@fiu.edu
+RVC Elisha Jeanbaptiste 6447222 ejean112@fiu.edu
+RVC Stherline Clairissaint 6391671 sclai006@fiu.edu
+RVC Obed Turnier 6125247 Oturnier2018@fiu.edu
+
 2. Include corresponding member details.
 
-Luisana Barajas - 
+RVC Luisana Barajas - Worked on Task 1 and Task 3
+RVC Elisha Jeanbaptiste - Worked on Task 1 and 2
+RVC Stherline Clairissaint - Worked on Task 2 and makefile
+RVC Obed Turnier 6125247 Oturnier2018@fiu.edu - Worked on task 2
 
 
 3. Any specific information regarding the implementation and compilation if required.
