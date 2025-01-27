@@ -1,3 +1,12 @@
+#include <stdio.h>   
+#include <stdlib.h>  
+#include <math.h>   
+#include <string.h>
+
+
+double calculate_mean(double* data, int n);
+double calculate_std_dev(double* data, int n, double mean);
+
 void process_statistics() {
     for (int i = 1; i <= 3; i++) {
         char base_path[256];
