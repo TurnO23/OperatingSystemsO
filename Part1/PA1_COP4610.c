@@ -6,15 +6,16 @@
 #include <sys/stat.h> // For mkdir()
 #include <errno.h>
 
-#define M_PI 3.14159265358979323846
 
 #define frand() (rand() / (double)RAND_MAX) // Uniform random number in [0, 1)
 #define nrand() (sqrt(-2 * log(frand())) * cos(2 * M_PI * frand())) // Normal
 // random number
 // Number of bins for histograms
 #define HISTOGRAM_BINS 50// Function prototypes
+
+
 void generate_random_numbers_to_file(const char* filename, int type, double m, double M, double mu, double sigma, int N);
-void calculate_statistics_from_file(const char* filename, int N);
+void calculate_statistics_from_file(const char* filename, int N, double mu, double sigma, double m, double M);
 void generate_histogram_from_file(const char* input_filename, const char*
 output_filename, int bins, double min, double max);
 int generate_uniform_integer(double m, double M);
@@ -28,6 +29,8 @@ sigma);
 double calculate_mean(double* data, int n);
 double calculate_std_dev(double* data, int n, double mean);
 int create_directory(const char* path);
+
+
 int main() {
 srand(time(NULL)); // Seed the random number generator
 // Define scenarios: {mu, sigma, m, M, N}
@@ -36,9 +39,37 @@ double scenarios[3][5] = {
 {pow(2, 10), pow(2, 8), 1, 2000, 200000},
 {pow(2, 12), 1.3 * pow(2, 10), 1, 8100, 2000000}
 };
+
 // Paths for directories and files
 char* subfolders[3] = {"DATA/Scenario1", "DATA/Scenario2", "DATA/Scenario3"};
 char* histogram_folder = "HISTOGRAM";
+
+ // Create directories
+    // create_directory("DATA"); 
+    // for (int i = 0; i < 3; i++) {
+    //     create_directory(subfolders[i]);
+    // }
+    // create_directory(histogram_folder);
+
+     // Create directories with error checking
+
+    if (create_directory("DATA") == 0) { 
+        printf("Directory 'DATA' created successfully.\n");
+    }
+    for (int i = 0; i < 3; i++) {
+        if (create_directory(subfolders[i]) == 0) {
+            printf("Directory '%s' created successfully.\n", subfolders[i]);
+        }
+    }
+    if (create_directory(histogram_folder) == 0) {
+        printf("Directory '%s' created successfully.\n", histogram_folder);
+    }
+
+      // Define an array to store the calculated means and standard deviations
+    double means[3][6];  // 3 scenarios, 6 data types
+    double std_devs[3][6];
+
+    
 
 // Loop through each scenario to process random numbers
 for (int i = 0; i < 3; i++) {
@@ -47,24 +78,93 @@ double sigma = scenarios[i][1];
 double m = scenarios[i][2];
 double M = scenarios[i][3];
 int N = (int)scenarios[i][4];
+
+// Print scenario parameters once
+    printf("Scenario %d:\n", i + 1);
+    printf("mu=%.2f, sigma=%.2f, m=%.0f, M=%.0f, N=%d\n", mu, sigma, m, M, N);
+
+
 // Process random number generation, statistics, and histograms// Utilize appropriate function calls (detailed below) for each step.
+// Generate filenames
+        char data_filename[50]; 
+        sprintf(data_filename, "%s/data.txt", subfolders[i]);
+
+        char histogram_filename[50];
+        sprintf(histogram_filename, "%s/histogram_%d.txt", histogram_folder, i + 1);
+
+        // Generate random numbers (loop through types 1 to 6)
+        for (int type = 1; type <= 6; type++) {
+            char type_filename[60]; 
+            sprintf(type_filename, "%s/data_type_%d.txt", subfolders[i], type);
+            generate_random_numbers_to_file(type_filename, type, m, M, mu, sigma, N);
+
+            // Calculate statistics
+            calculate_statistics_from_file(type_filename, N, mu, sigma, m, M);
+
+            // // Generate histograms (previous version) 
+            // char type_histogram_filename[60];
+            // sprintf(type_histogram_filename, "%s/histogram_%d_type_%d.txt", histogram_folder, i + 1, type);
+            // generate_histogram_from_file(type_filename, type_histogram_filename, HISTOGRAM_BINS, m, M); 
+
+             if (i == 2) {  
+                char type_histogram_filename[60];
+                sprintf(type_histogram_filename, "%s/histogram_%d_type_%d.txt", histogram_folder, i + 1, type);
+                generate_histogram_from_file(type_filename, type_histogram_filename, HISTOGRAM_BINS, m, M); 
+            }
+        }
+    }
+    // Generate the summary table (statistics.txt)
+FILE *fp = fopen("statistics.txt", "w");
+if (fp == NULL) {
+    fprintf(stderr, "Error opening file!\n");
+    exit(1);
 }
+
+fprintf(fp, "--------------------------------------------------\n");
+fprintf(fp, "| %-15s | %-15s | %-15s |\n", "Scenario", "Sample Mean", "Sample Std Dev");
+fprintf(fp, "--------------------------------------------------\n");
+
+    for (int i = 0; i < 3; i++) {
+        double mu = scenarios[i][0];
+        double sigma = scenarios[i][1];
+        double m = scenarios[i][2];
+        double M = scenarios[i][3];
+        int N = (int)scenarios[i][4];
+
+        char *data_types[6] = {
+            "Uniform Int", "Uniform Real", "Normal Real", 
+            "Normal Int", "Truncated Normal Real", "Truncated Normal Int"
+        };
+
+        for (int j = 0; j < 6; j++) {
+        fprintf(fp, "| %-15s | %-15.6f | %-15.6f |\n", 
+                i == 0 ? "Scenario-1" : i == 1 ? "Scenario-2" : "Scenario-3",  // Simplified scenario display
+                means[i][j], std_devs[i][j]);
+        if (j < 5) {
+            fprintf(fp, "| %-15s | %-15s | %-15s |\n", 
+                    data_types[j], "", ""); // Only data type on subsequent lines
+        }
+    }
+    fprintf(fp, "--------------------------------------------------\n");
+}
+    fclose(fp);
 return 0;
 }
+
+
          
 int create_directory(const char* path)
 {
-    int result = mkdir(path, 0777);//0777 allows full read write access
-    if ( result  == -1) {
-        //errno is a spec var that tells why last operation failed
-        // EEXIST means that the dir already exists
+    int result = mkdir(path, 0777);
+    if (result == -1) {
         if (errno == EEXIST) {
-            return 0;
+            return 0; 
         } else {
-            fprintf(stderr, "Error creating directory '%s': %s\n", path, strerror(errno));//strerror(errno) converts error code into human readable message
-            return -1;
+            fprintf(stderr, "Error creating directory '%s': %s\n", path, strerror(errno));
+            return -1; // Return -1 to indicate an error
         }
     }
+    return 0; // Return 0 to indicate success
 }
 
 
@@ -112,7 +212,7 @@ double M, double mu, double sigma, int N)
     fclose(file);
 } 
 
-void calculate_statistics_from_file(const char* filename, int N)
+void calculate_statistics_from_file(const char* filename, int N, double mu, double sigma, double m, double M) 
 {
     FILE* file = fopen(filename, "r");
     if (!file) {
@@ -145,9 +245,8 @@ void calculate_statistics_from_file(const char* filename, int N)
     double std_dev = sqrt(variance);
 
     // Print results
-    printf("File: %s\n", filename);
-    printf("Mean: %.6f\n", mean);
-    printf("Standard Deviation: %.6f\n", std_dev);
+    printf("File: %s -> Mean = %.6f, Std Dev = %.6f (Data Points: %d)\n", filename, mean, std_dev, N);
+
 
     // Close the file
     fclose(file);
@@ -196,10 +295,16 @@ output_filename, int bins, double min, double max)
     }
 
     // Write histogram to the output file
+    // for (int i = 0; i < bins; i++) {
+    //     double bin_start = min + i * bin_width;
+    //     double bin_end = bin_start + bin_width;
+    //     fprintf(output_file, "%.2f - %.2f: %d\n", bin_start, bin_end, histogram[i]);
+    // }
+
     for (int i = 0; i < bins; i++) {
         double bin_start = min + i * bin_width;
         double bin_end = bin_start + bin_width;
-        fprintf(output_file, "%.2f - %.2f: %d\n", bin_start, bin_end, histogram[i]);
+        fprintf(output_file, "Bin [%d] ----> Count: %d\n", i, histogram[i]); 
     }
 
     // Clean up
@@ -281,4 +386,4 @@ double calculate_std_dev(double* data, int n, double mean)
     for (int i = 0; i < n; i++) {
         sum_squared_diff += pow(data[i] - mean, 2);  
     }
-    return sqrt(sum_squared_diff / (n - 1));  
+    return sqrt(sum_squared_diff / (n - 1)); } 
