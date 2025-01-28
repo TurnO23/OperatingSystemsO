@@ -6,7 +6,7 @@
 #include <sys/stat.h> // For mkdir()
 #include <errno.h>
 
-
+#define M_PI 3.14159265358979323846
 #define frand() (rand() / (double)RAND_MAX) // Uniform random number in [0, 1)
 #define nrand() (sqrt(-2 * log(frand())) * cos(2 * M_PI * frand())) // Normal
 // random number
@@ -94,9 +94,38 @@ int N = (int)scenarios[i][4];
 
         // Generate random numbers (loop through types 1 to 6)
         for (int type = 1; type <= 6; type++) {
-            char type_filename[60]; 
-            sprintf(type_filename, "%s/data_type_%d.txt", subfolders[i], type);
-            generate_random_numbers_to_file(type_filename, type, m, M, mu, sigma, N);
+            char type_filename[60];
+           
+            if (type = 1)
+            {
+                sprintf(type_filename, "%s/uniform_integers.txt", subfolders[i]);
+                generate_random_numbers_to_file(type_filename, type, m, M, mu, sigma, N);
+            }
+            if (type = 2)
+            {
+                sprintf(type_filename, "%s/uniform_real.txt", subfolders[i]);
+                generate_random_numbers_to_file(type_filename, type, m, M, mu, sigma, N);
+            }
+            if (type = 3)
+            {
+                sprintf(type_filename, "%s/normal_real.txt", subfolders[i]);
+                generate_random_numbers_to_file(type_filename, type, m, M, mu, sigma, N);
+            }
+            if (type = 4)
+            {
+                sprintf(type_filename, "%s/normal_integer.txt", subfolders[i]);
+                generate_random_numbers_to_file(type_filename, type, m, M, mu, sigma, N);
+            }
+            if (type = 5)
+            {
+                sprintf(type_filename, "%s/truncated_normal_real.txt", subfolders[i]);
+                generate_random_numbers_to_file(type_filename, type, m, M, mu, sigma, N);
+            }
+            if (type = 6)
+            {
+                sprintf(type_filename, "%s/truncated_normal_integer.txt", subfolders[i]);
+                generate_random_numbers_to_file(type_filename, type, m, M, mu, sigma, N);
+            }
 
             // Calculate statistics
             calculate_statistics_from_file(type_filename, N, mu, sigma, m, M);
@@ -132,8 +161,8 @@ fprintf(fp, "--------------------------------------------------\n");
         int N = (int)scenarios[i][4];
 
         char *data_types[6] = {
-            "Uniform Int", "Uniform Real", "Normal Real", 
-            "Normal Int", "Truncated Normal Real", "Truncated Normal Int"
+            "uniform_integers", "uniform_real", "normal_real", 
+            "normal_integer", "truncated_normal_real", "truncated_normal_integer"
         };
 
         for (int j = 0; j < 6; j++) {
